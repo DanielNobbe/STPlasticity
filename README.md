@@ -4,6 +4,10 @@ This is a modification of a repository of user Matthijspals, expanding his imple
 
 These modifications are made as part of the course Neural Dynamics and Deep Learning at UvA.
 
+To work with this code, first run the generate_stimuli.py file, then you can run the experiment files.
+
+
+Below, the original README:
 # STSP
 A Nengo Implementation of Short-term Synaptic Plasticity (STSP) as proposed by Mongillo, Barak and Tsodyks (2008).
 ## How to use it
