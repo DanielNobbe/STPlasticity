@@ -1,4 +1,3 @@
-# happy wednesday 
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt   
@@ -13,7 +12,7 @@ import nengo.spa as spa
 import os.path
 
 #SIMULATION CONTROL for GUI
-uncued=False #set if you want to run both the cued and uncued model
+uncued = False #set if you want to run both the cued and uncued model
 load_gabors_svd=True #set to false if you want to generate new ones
 store_representations = False #store representations of model runs (for Fig 3 & 4)
 store_decisions = False #store decision ensemble (for Fig 5 & 6)
@@ -336,7 +335,7 @@ from plotnine import *
 theme = theme_classic()
 plt.style.use('default')
 
-def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued):
+def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued=None):
 
     #FIGURE 31
     with plt.rc_context():
@@ -364,21 +363,22 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued):
         ax2.set_yticks([])
         ax2.set_ylim(0,1.1)
 
-        #spikes, calcium, resources Uncued
-        ax3=axes[0,1]
-        ax3.set_title("Uncued Module")
-        rasterplot(sim.trange(), sp_u,ax3,colors=['black']*sp_u.shape[0])
-        ax3.set_xticklabels([])
-        ax3.set_xticks([])
-        ax3.set_yticklabels([])
-        ax3.set_yticks([])
-        ax3.set_xlim(0,3)
-        ax4 = ax3.twinx()
-        ax4.plot(t, res_u, "#00bfc4",linewidth=2)
-        ax4.plot(t, cal_u, "#e38900",linewidth=2)
-        ax4.set_ylabel('synaptic variables', color="black",size=11)
-        ax4.tick_params('y', labelcolor='#333333',labelsize=9,color='#333333')
-        ax4.set_ylim(0,1.1)
+        if cal_u is not None:
+            #spikes, calcium, resources Uncued
+            ax3=axes[0,1]
+            ax3.set_title("Uncued Module")
+            rasterplot(sim.trange(), sp_u,ax3,colors=['black']*sp_u.shape[0])
+            ax3.set_xticklabels([])
+            ax3.set_xticks([])
+            ax3.set_yticklabels([])
+            ax3.set_yticks([])
+            ax3.set_xlim(0,3)
+            ax4 = ax3.twinx()
+            ax4.plot(t, res_u, "#00bfc4",linewidth=2)
+            ax4.plot(t, cal_u, "#e38900",linewidth=2)
+            ax4.set_ylabel('synaptic variables', color="black",size=11)
+            ax4.tick_params('y', labelcolor='#333333',labelsize=9,color='#333333')
+            ax4.set_ylim(0,1.1)
 
         #representations cued
         plot_mc=axes[1,0]
@@ -393,20 +393,21 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued):
         for i,j in enumerate(plot_mc.lines):
             j.set_color(colors[i])
 
-        #representations uncued
-        plot_mu=axes[1,1]
+        if cal_u is not None:
+            #representations uncued
+            plot_mu=axes[1,1]
 
-        plot_mu.plot(sim.trange(),(mem_uncued));
-        plot_mu.set_xticks(np.arange(0.0,3.45,0.5))
-        plot_mu.set_xticklabels(np.arange(0,3500,500).tolist())
-        plot_mu.set_xlabel('time (ms)')
-        plot_mu.set_yticks([])
-        plot_mu.set_yticklabels([])
-        plot_mu.set_xlim(0,3)
-        for i,j in enumerate(plot_mu.lines):
-            j.set_color(colors[i])
-        plot_mu.legend(["0°","3°","7°","12°","18°","25°","33°","42°", "Impulse"], title="Stimulus", bbox_to_anchor=(1.02, -0.25, .30, 0.8), loc=3,
-               ncol=1, mode="expand", borderaxespad=0.)
+            plot_mu.plot(sim.trange(),(mem_uncued));
+            plot_mu.set_xticks(np.arange(0.0,3.45,0.5))
+            plot_mu.set_xticklabels(np.arange(0,3500,500).tolist())
+            plot_mu.set_xlabel('time (ms)')
+            plot_mu.set_yticks([])
+            plot_mu.set_yticklabels([])
+            plot_mu.set_xlim(0,3)
+            for i,j in enumerate(plot_mu.lines):
+                j.set_color(colors[i])
+            plot_mu.legend(["0°","3°","7°","12°","18°","25°","33°","42°", "Impulse"], title="Stimulus", bbox_to_anchor=(1.02, -0.25, .30, 0.8), loc=3,
+                ncol=1, mode="expand", borderaxespad=0.)
 
 
         fig.set_size_inches(11, 5)
@@ -514,7 +515,7 @@ else: #no gui
         ntrials = 100
         store_representations = True
         store_decisions = False
-        uncued = True
+        uncued = False
 
 
         #store results        
@@ -535,9 +536,15 @@ else: #no gui
             probe_uncued = probe_cued
 
             #create new gabor filters every 10 trials
-            if run % 10 == 0:
-                generate_gabors()
+            # if run % 10 == 0:
+            #     if run>0:
+            #         del compressed_im_cued
+            #     generate_gabors()
         
+            # Disabled regeneration of gabor filters, seems useless to me
+            if run == 0:
+                generate_gabors()
+
             create_model(seed=run)
             sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
 
@@ -551,7 +558,8 @@ else: #no gui
             
             for cnt, templ in enumerate(temp_phase):
                 mem_cued[:,cnt] += cosine_sim(sim.data[model.p_mem_cued][:,:,],compressed_im_cued[templ,:])
-                mem_uncued[:,cnt] += cosine_sim(sim.data[model.p_mem_uncued][:,:,],compressed_im_uncued[templ,:])
+                if uncued:
+                    mem_uncued[:,cnt] += cosine_sim(sim.data[model.p_mem_uncued][:,:,],compressed_im_uncued[templ,:])
 
             sim.reset()
             for probe2 in sim.model.probes:
@@ -578,12 +586,14 @@ else: #no gui
         res_c=np.mean(sim.data[model.p_res_cued][:,:,],1) #take mean over neurons
         cal_c=np.mean(sim.data[model.p_cal_cued][:,:,],1) #take mean over neurons
 
-        sp_u=sim.data[model.p_spikes_mem_uncued]
-        res_u=np.mean(sim.data[model.p_res_uncued][:,:,],1)
-        cal_u=np.mean(sim.data[model.p_cal_uncued][:,:,],1)
+        if uncued:
+            sp_u=sim.data[model.p_spikes_mem_uncued]
+            res_u=np.mean(sim.data[model.p_res_uncued][:,:,],1)
+            cal_u=np.mean(sim.data[model.p_cal_uncued][:,:,],1)
 
         #plot
-        plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued)
+        if uncued:
+            plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued)
         
 
     #simulation 2: collect data for fig 5 & 6. 1344 trials for 30 subjects
