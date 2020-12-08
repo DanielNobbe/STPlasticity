@@ -28,6 +28,9 @@ from plotnine import *
 # Import functions from exp1 file:
 from Model_sim_exp1 import *
 
+# TODO: Finish refactoring for uncued, and for part 2 of exp1. And for other experiments
+
+
 def main():     
     tracemalloc.start()
 
@@ -37,6 +40,8 @@ def main():
     context=cl.Context([device])
 
     nengo_gui_on = __name__ == 'builtins' #python3
+    sim_to_run = 2
+    sim_no = str(sim_to_run)
 
 
     if nengo_gui_on:
@@ -53,32 +58,36 @@ def main():
         
         #path
         cur_path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+'/data/' #store output in data subfolder
-        
+        if not os.path.exists(cur_path):
+            os.makedirs(cur_path)
         #simulation 1: recreate fig 3 & 4, 100 trials for both cued and uncued with 0 and 42 degree memory items and probes
+        # D: They say 100 trials, is this with a different setting? They're trying to get 'average cosine sim'
+        # so that indicates each run is the same?
         if sim_to_run == 1:
         
             print('Running simulation 1')
             print('')
             
-            load_gabors_svd = False #no need to randomize this
+            load_gabors_svd = True #no need to randomize this
             
-            ntrials = 100
+            ntrials = 1 # Used to be 100
             store_representations = True
             store_decisions = False
-            uncued = False
+            uncued = True # Set to True for full experiment, and plotting of figure 3,4
 
 
             #store results        
             templates=np.array([90,93,97,102,108,115,123,132])
             mem_cued = np.zeros((3000,len(templates)+1)) #keep cosine sim for 9 items (templates + impulse)
             mem_uncued = np.zeros((3000,len(templates)+1))
-            
+            # D: why is this 3000???
+
             # DANIEL: Added cache
             # cache = Cache()
 
             #first, run 100 trials to get average cosine sim
             for run in range(ntrials):
-            
+                
                 print('Run ' + str(run+1))
 
                 #stimuli
@@ -94,36 +103,63 @@ def main():
                         # D: clean up / clear out old gabor filters to make room in memory for new ones
                         del sim
                         del model
-                        del compressed_im_cued
-                        del e_cued
-                        del U_cued
+                        del e_cued, U_cued, compressed_im_cued
+                        if uncued:
+                            del e_uncued, U_uncued, compressed_im_uncued
                         gc.collect()
-
-                    # TODO: This function returns a different tuple when uncued is true
-                    e_cued, U_cued, compressed_im_cued = generate_gabors(
-                                            load_gabors_svd=load_gabors_svd, uncued=False) 
+                        load_gabors_svd = False # Re-enable the generation
+                    if not uncued:
+                        e_cued, U_cued, compressed_im_cued = generate_gabors(
+                                            load_gabors_svd=load_gabors_svd, uncued=uncued)
+                    else:
+                        (e_cued, U_cued, compressed_im_cued, e_uncued, U_uncued, compressed_im_uncued
+                            ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued)
+                    # D: compressed_im_cued is 
             
 
-
-                model = create_model(seed=run, nengo_gui_on=nengo_gui_on, store_representations=store_representations,
-                store_decisions=store_decisions, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued)
+                # D: Each run has a different seed for the model and simulation
+                # This also means we can directly pass the memory_item_cued, making this a lot simpler
+                # Not how I would set it up myself, but I guess it works.
+                if not uncued:
+                    model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                else:
+                    model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
+                            compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
+                            compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
                 sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
 
                 #run simulation
                 sim.run(3)
+                # Each run only has a single input angle and probe angle. These always have the same relative angle, but the absolute angles vary by 180 deg.
+                # this means that the real angle probably does not differ at all. 
 
                 #reset simulator, clean probes thoroughly
                 #print(sim.data[model.p_mem_cued].shape)
                 #calc cosine sim with templates
                 temp_phase = list(templates + phase) + [1800]
-                
+                # set_trace()
                 for cnt, templ in enumerate(temp_phase):
                     mem_cued[:,cnt] += cosine_sim(sim.data[model.p_mem_cued][:,:,],compressed_im_cued[templ,:])
+                    # In the sim.data[model.p_mem_cued], a vector of length 24 for the representation in the memory ensemble
+                    # is stored for every timestep (by default total of 3000 = 3 seconds x 1 ms timesteps)
+
+                    # In the compressed_im_cued, the optimal compression of the image in 24 dimensions is stored.
+                    # They select a subset of images at specific angles (templ).
+
+                    # Still unclear what is exactly extracted by this probe
+
                     mem_cued = deepcopy(mem_cued)
                     if uncued:
                         mem_uncued[:,cnt] += cosine_sim(sim.data[model.p_mem_uncued][:,:,],compressed_im_uncued[templ,:])
-
+                # if run == 9:
+                #     set_trace()
                 # # D: Here, they delete some stuff, but not everything. I should take a look what exactly stays in memory
+                # D: what they delete here might be the results of the simulation
+                # D: which is weird, since they re-initialize the simulator after this
                 sim.reset()
                 for probe2 in sim.model.probes:
                     del sim._probe_outputs[probe2][:]
@@ -138,8 +174,18 @@ def main():
             #second, run 1 trial to get calcium and spikes
             store_spikes_and_resources = True
             store_representations = False
-            create_model(seed=0, nengo_gui_on=nengo_gui_on, store_representations=store_representations,
-                store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources) #recreate model to change probes
+            if not uncued:
+                model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+            else:
+                model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
+                            compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
+                            compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
+            # create_model(seed=0, nengo_gui_on=nengo_gui_on, store_representations=store_representations,
+            #     store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources) #recreate model to change probes
             sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
 
             print('Run ' + str(ntrials+1))
@@ -157,19 +203,27 @@ def main():
 
             #plot
             if uncued:
-                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued)
+                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim)
             
 
         #simulation 2: collect data for fig 5 & 6. 1344 trials for 30 subjects
         if sim_to_run == 2:
         
-            load_gabors_svd = False #set to false for real simulation
+            load_gabors_svd = True #set to false for real simulation D: should be true
 
-            n_subj = 30
-            trials_per_subj = 1344
+            n_subj = 3 # Was 30
+            trials_per_subj = 14 # was 1344
             store_representations = False 
-            store_decisions = True 
-            uncued = False
+            store_decisions = True # Should be true for this exp 
+            uncued = False # Only do this for cued module. TODO: Do we want to change this?
+
+
+            # D: stimuli for init/test
+            phase = 180*randint(0, 9)
+            memory_item_cued = 0 + 90 + phase
+            probe_cued = 42 + 90 + phase
+            memory_item_uncued = memory_item_cued
+            probe_uncued = probe_cued
 
             #np array to keep track of the input during the simulation runs
             initialangle_c = np.zeros(n_subj*trials_per_subj) #cued
@@ -181,12 +235,37 @@ def main():
             for subj in range(n_subj):
 
                 #create new gabor filters and model for each new participant
-                generate_gabors()
-                create_model(seed=subj)
+                if subj>0:
+                    del sim
+                    del model
+                    del e_cued, U_cued, compressed_im_cued
+                    if uncued:
+                        del e_uncued, U_uncued, compressed_im_uncued
+                    gc.collect()
+                if not uncued:
+                    e_cued, U_cued, compressed_im_cued = generate_gabors(
+                                        load_gabors_svd=load_gabors_svd, uncued=uncued)
+                else:
+                    (e_cued, U_cued, compressed_im_cued, e_uncued, U_uncued, compressed_im_uncued
+                        ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued)
+
+                if not uncued:
+                    model = create_model(seed=subj, nengo_gui_on=False, store_representations=store_representations,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                    # set_trace()
+                      
+                else:
+                    model = create_model(seed=subj, nengo_gui_on=False, store_representations=store_representations,
+                            store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
+                            compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
+                            compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
 
                 #use StpOCLsimulator to make use of the Nengo OCL implementation of STSP
                 sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
-
+                sim.run(3)
+                # set_trace()
                 #trials come in sets of 14, which we call a run (all possible orientation differences between memory and probe),
                 runs = int(trials_per_subj / 14)   
 
@@ -210,6 +289,12 @@ def main():
                         #store orientation
                         initialangle_c[angle_index]=or_memory_item_cued
                 
+                        # D: Insert new probe and memory item into input_cued node:
+                        cued_input_partial = partial(input_func_cued, memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                        assert model.nodes[0].label == 'input_cued', "First node not input_cued, please fix"
+                        model.nodes[0] = nengo.Node(cued_input_partial,label='input_cued', add_to_container=False) 
+                        # set_trace()
+
                         #run simulation
                         sim.run(3)
                     
