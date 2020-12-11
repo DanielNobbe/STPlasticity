@@ -19,6 +19,8 @@ import os
 import tracemalloc
 
 import gc
+import argparse
+
 
 # For plotting:
 from nengo.utils.matplotlib import rasterplot
@@ -31,7 +33,7 @@ from Model_sim_exp1 import *
 # TODO: Finish refactoring for uncued, and for part 2 of exp1. And for other experiments
 
 
-def main():     
+def main(args):     
     tracemalloc.start()
 
     #set this if you are using nengo OCL
@@ -40,8 +42,15 @@ def main():
     context=cl.Context([device])
 
     nengo_gui_on = __name__ == 'builtins' #python3
-    sim_to_run = 2
+    sim_to_run = args.sim
     sim_no = str(sim_to_run)
+
+    #MODEL PARAMETERS
+    D = args.D  #dimensions of representations
+    Ns = args.Ns #number of neurons in sensory layer
+    Nm = args.Nm #number of neurons in memory layer
+    Nc = args.Nc #number of neurons in comparison
+    Nd = args.Nd #number of neurons in decision
 
 
     if nengo_gui_on:
@@ -110,10 +119,10 @@ def main():
                         load_gabors_svd = False # Re-enable the generation
                     if not uncued:
                         e_cued, U_cued, compressed_im_cued = generate_gabors(
-                                            load_gabors_svd=load_gabors_svd, uncued=uncued)
+                                            load_gabors_svd=load_gabors_svd, uncued=uncued, Ns=Ns, D=D)
                     else:
                         (e_cued, U_cued, compressed_im_cued, e_uncued, U_uncued, compressed_im_uncued
-                            ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued)
+                            ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued, Ns=Ns, D=D)
                     # D: compressed_im_cued is 
             
 
@@ -123,13 +132,14 @@ def main():
                 if not uncued:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
-                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
                 else:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
-                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
                 sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
 
                 #run simulation
@@ -177,13 +187,15 @@ def main():
             if not uncued:
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
-                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, 
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
             else:
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
-                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
             # create_model(seed=0, nengo_gui_on=nengo_gui_on, store_representations=store_representations,
             #     store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources) #recreate model to change probes
             sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
@@ -203,7 +215,7 @@ def main():
 
             #plot
             if uncued:
-                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim)
+                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim, Nm=Nm)
             
 
         #simulation 2: collect data for fig 5 & 6. 1344 trials for 30 subjects
@@ -244,15 +256,16 @@ def main():
                     gc.collect()
                 if not uncued:
                     e_cued, U_cued, compressed_im_cued = generate_gabors(
-                                        load_gabors_svd=load_gabors_svd, uncued=uncued)
+                                        load_gabors_svd=load_gabors_svd, uncued=uncued, Ns=Ns, D=D)
                 else:
                     (e_cued, U_cued, compressed_im_cued, e_uncued, U_uncued, compressed_im_uncued
-                        ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued)
+                        ) = generate_gabors(load_gabors_svd=load_gabors_svd, uncued=uncued, Ns=Ns, D=D)
 
                 if not uncued:
                     model = create_model(seed=subj, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
-                            memory_item_cued=memory_item_cued, probe_cued=probe_cued)
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, 
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
                     # set_trace()
                       
                 else:
@@ -260,7 +273,8 @@ def main():
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
-                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued)
+                            memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
 
                 #use StpOCLsimulator to make use of the Nengo OCL implementation of STSP
                 sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
@@ -313,4 +327,13 @@ def main():
             np.savetxt(cur_path+sim_no+"_initial_angles_cued.csv", initialangle_c,delimiter=",")
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--sim', type=int, help='Simulation to run')
+    parser.add_argument('--D', '-D', type=int, default=24, help='Dimensionality of representations')
+    parser.add_argument('--Ns', '-Ns', type=int, default=1000, help='Dimensionality of representations')
+    parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
+    parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
+    parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
+
+    args = parser.parse_args()
+    main(args)

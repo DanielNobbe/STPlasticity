@@ -67,16 +67,6 @@ platform = cl.get_platforms()[0]   #select platform, should be 0
 device=platform.get_devices()[0]   #select GPU, use 0 (Nvidia 1) or 1 (Nvidia 3)
 context=cl.Context([device])
 
-
-
-#MODEL PARAMETERS
-D = 24  #dimensions of representations
-Ns = 1000 #number of neurons in sensory layer
-Nm = 1500 #number of neurons in memory layer
-Nc = 1500 #number of neurons in comparison
-Nd = 1000 #number of neurons in decision
-
-
 #LOAD INPUT STIMULI (images created using the psychopy package)
 #(Stimuli should be in a subfolder named 'Stimuli') 
 
@@ -179,7 +169,7 @@ def input_func_uncued(t, memory_item_uncued=None, probe_uncued=None):
         return np.zeros(128*128) #blank screen
 
 #reactivate memory cued ensemble with nonspecific signal        
-def reactivate_func(t):
+def reactivate_func(t, Nm=None):
     if t>1.050 and t<1.070:
         return np.ones(Nm)*0.0200
     else:
@@ -220,7 +210,7 @@ def arctan_func(v):
 #MODEL
 
 #gabor generation for a particular model-participant
-def generate_gabors(load_gabors_svd=False, uncued=False):
+def generate_gabors(load_gabors_svd=False, uncued=False, Ns=None, D=None):
 
     # global e_cued
     # global U_cued
@@ -300,7 +290,7 @@ def generate_gabors(load_gabors_svd=False, uncued=False):
 def create_model(seed=None, nengo_gui_on=False, store_representations=False, store_spikes_and_resources=False, 
 store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cued=None, e_uncued=None, U_uncued=None, 
     compressed_im_uncued=None, memory_item_cued=None, memory_item_uncued=None, probe_cued=None,
-    probe_uncued=None):
+    probe_uncued=None, Ns=None, D=None, Nm=None, Nc=None, Nd=None):
 
     # global model
     
@@ -326,6 +316,7 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
 
     cued_input_partial = partial(input_func_cued, memory_item_cued=memory_item_cued, probe_cued=probe_cued)
     uncued_input_partial = partial(input_func_uncued, memory_item_uncued=memory_item_uncued, probe_uncued=probe_uncued)
+    react_partial = partial(reactivate_func, Nm=Nm)
 
     with model: # Again some weird global stuff happening..
         # So this defines the architecture of the model. We don't necessarily need to change this
@@ -333,7 +324,7 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         # TODO: Implement uncued
         #input nodes
         inputNode_cued=nengo.Node(cued_input_partial,label='input_cued')     
-        reactivate=nengo.Node(reactivate_func,label='reactivate')  # Input here at CUE (CUE is not actually shown)
+        reactivate=nengo.Node(react_partial,label='reactivate')  # Input here at CUE (CUE is not actually shown)
         # The two ensembles above have their functions directly specified
         # the reactivate ensemble gives a pulse to any ensembles it's connected to, and the input node receives images at specific times
 
@@ -427,7 +418,7 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
 
 
 
-def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued=None, sim=None):
+def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued=None, sim=None, Nm=None):
     theme = theme_classic()
     plt.style.use('default')
     #FIGURE 31

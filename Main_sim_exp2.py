@@ -19,6 +19,7 @@ import os
 import tracemalloc
 
 import gc
+import argparse
 
 # For plotting:
 from nengo.utils.matplotlib import rasterplot
@@ -27,6 +28,7 @@ from plotnine import *
 
 # Import functions from exp1 file:
 from Model_sim_exp2 import *
+
 
 
 def display_top(snapshot, key_type='lineno', limit=3):
@@ -56,8 +58,7 @@ def display_top(snapshot, key_type='lineno', limit=3):
 
 
 
-def main():
-    tracemalloc.start()
+def main(args):
     #SIMULATION CONTROL for GUI
     load_gabors_svd=True #set to false if you want to generate new ones
     store_representations = False #store representations of model runs (for Fig 3 & 4)
@@ -67,7 +68,7 @@ def main():
     #specify here which sim you want to run if you do not use the nengo GUI
     #1 = representations & spikes
     #2 = performance, decision signal
-    sim_to_run = 2
+    sim_to_run = args.sim
     sim_no = str(sim_to_run)      #simulation number (used in the names of the outputfiles)
 
     #set this if you are using nengo OCL
@@ -77,11 +78,11 @@ def main():
 
 
     #MODEL PARAMETERS
-    D = 24  #dimensions of representations
-    Ns = 1000 #number of neurons in sensory layer
-    Nm = 1500 #number of neurons in memory layer
-    Nc = 1500 #number of neurons in comparison
-    Nd = 1000 #number of neurons in decision
+    D = args.D  #dimensions of representations
+    Ns = args.Ns #number of neurons in sensory layer
+    Nm = args.Nm #number of neurons in memory layer
+    Nc = args.Nc #number of neurons in comparison
+    Nd = args.Nd #number of neurons in decision
 
 
     #LOAD INPUT STIMULI (images created using the psychopy package)
@@ -303,4 +304,13 @@ def main():
 
 
 if __name__=='__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--sim', type=int, help='Simulation to run')
+    parser.add_argument('--D', '-D', type=int, default=24, help='Dimensionality of representations')
+    parser.add_argument('--Ns', '-Ns', type=int, default=1000, help='Dimensionality of representations')
+    parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
+    parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
+    parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
+
+    args = parser.parse_args()
+    main(args)
