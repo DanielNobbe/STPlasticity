@@ -290,7 +290,7 @@ def generate_gabors(load_gabors_svd=False, uncued=False, Ns=None, D=None):
 def create_model(seed=None, nengo_gui_on=False, store_representations=False, store_spikes_and_resources=False, 
 store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cued=None, e_uncued=None, U_uncued=None, 
     compressed_im_uncued=None, memory_item_cued=None, memory_item_uncued=None, probe_cued=None,
-    probe_uncued=None, Ns=None, D=None, Nm=None, Nc=None, Nd=None):
+    probe_uncued=None, Ns=None, D=None, Nm=None, Nc=None, Nd=None, attention=False):
 
     # global model
     
@@ -378,7 +378,19 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
             
             decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
             nengo.Connection(comparison_uncued, decision_uncued, eval_points=ep, scale_eval_points=False, function=arctan_func)
-     
+        
+        # apply attentional gain to the sensory ensemble in the cued module
+        if attention:
+            _ = nengo.Network()
+            with model:
+                sensory_cued
+            with nengo.Simulator(_) as sim:
+                pass
+            gain = _.data[sensory_cued].gain
+            bias = _.data[sensory_cued].bias
+            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, bias=bias, gain=gain,radius=1,label='sensory_cued')
+            del _
+        
         #decode for gui
         if nengo_gui_on:
             model.sensory_decode = spa.State(D, vocab=vocab_angles, subdimensions=12, label='sensory_decode')

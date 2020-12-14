@@ -51,6 +51,7 @@ def main(args):
     Nm = args.Nm #number of neurons in memory layer
     Nc = args.Nc #number of neurons in comparison
     Nd = args.Nd #number of neurons in decision
+    attention = args.att #enable attentional gain to sensory layer
 
 
     if nengo_gui_on:
@@ -132,7 +133,7 @@ def main(args):
                 if not uncued:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
-                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, attention=attention)
                 else:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
@@ -188,7 +189,7 @@ def main(args):
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
                             memory_item_cued=memory_item_cued, probe_cued=probe_cued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, attention=attention)
             else:
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
@@ -334,6 +335,7 @@ if __name__ == '__main__':
     parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
+    parser.add_argument('--att', type=bool, help='Apply attentional gain to sensory ensemble')
 
     args = parser.parse_args()
     main(args)
