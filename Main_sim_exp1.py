@@ -84,7 +84,6 @@ def main(args):
             
             load_gabors_svd = True #no need to randomize this
             
-            ntrials = 1 # Used to be 100
             store_representations = True
             store_decisions = False
             uncued = True # Set to True for full experiment, and plotting of figure 3,4
