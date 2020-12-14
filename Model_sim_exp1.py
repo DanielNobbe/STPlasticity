@@ -381,15 +381,8 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         
         # apply attentional gain to the sensory ensemble in the cued module
         if attention:
-            _ = nengo.Network()
-            with model:
-                sensory_cued
-            with nengo.Simulator(_) as sim:
-                pass
-            gain = _.data[sensory_cued].gain
-            bias = _.data[sensory_cued].bias
-            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, bias=bias, gain=gain,radius=1,label='sensory_cued')
-            del _
+            att_fact = 1.1 # the amount with which the max firing rates are increased due to attentional gain
+            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1), max_rates=Uniform(att_fact*200,att_fact*400),radius=1,label='sensory_cued')
         
         #decode for gui
         if nengo_gui_on:
