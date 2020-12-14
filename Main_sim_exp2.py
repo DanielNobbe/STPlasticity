@@ -83,11 +83,11 @@ def main(args):
     Nm = args.Nm #number of neurons in memory layer
     Nc = args.Nc #number of neurons in comparison
     Nd = args.Nd #number of neurons in decision
-
-
+    ntrials = args.ntrials
+    n_subj = args.nsubj
+    trials_per_subj = args.trials_per_subj
     #LOAD INPUT STIMULI (images created using the psychopy package)
     #(Stimuli should be in a subfolder named 'Stimuli') 
-
     
     
 
@@ -311,6 +311,9 @@ if __name__=='__main__':
     parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
-
+    parser.add_argument('--ntrials', '-nt', type=int, default=100, help='Number of trials to run in sim1')
+    parser.add_argument('--nsubj', '-ns', type=int, default=30, help='Number of subjects to run in sim2')
+    parser.add_argument('--trials_per_subj', '-nps', type=int, default=2*864, help='Number of trials per subject in sim2')
+    
     args = parser.parse_args()
     main(args)
