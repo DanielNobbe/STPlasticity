@@ -337,8 +337,8 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
             sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
         else:
             # apply attentional gain to the sensory ensemble in the cued module
-            att_fact = 1.3 # the amount with which the max firing rates are increased due to attentional gain
-            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1), max_rates=Uniform(att_fact*200,att_fact*400),radius=1,label='sensory_cued')
+            #att_fact = 1.3 # the amount with which the max firing rates are increased due to attentional gain
+            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1), max_rates=Uniform(260,520),radius=1,label='sensory_cued')
             
         # How does the encoder function work here? Does it use the e_cued matrix to convert the images into 
         # SVD reduced versions? But how do the gabor filters work
