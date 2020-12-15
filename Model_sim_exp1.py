@@ -290,7 +290,7 @@ def generate_gabors(load_gabors_svd=False, uncued=False, Ns=None, D=None):
 def create_model(seed=None, nengo_gui_on=False, store_representations=False, store_spikes_and_resources=False, 
 store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cued=None, e_uncued=None, U_uncued=None, 
     compressed_im_uncued=None, memory_item_cued=None, memory_item_uncued=None, probe_cued=None,
-    probe_uncued=None, Ns=None, D=None, Nm=None, Nc=None, Nd=None):
+    probe_uncued=None, Ns=None, D=None, Nm=None, Nc=None, Nd=None, args=None):
 
     # global model
     
@@ -333,7 +333,13 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         # Each neuron is a single vector (inner) product, similar to ANNs. 
         # e_cued here is the 'encoder' for the neurons (if seen as matrix, otherwise it's the collection of encoding vectors)
         # which follows from the trained? gabor filters.
-        sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
+        if '1' in args.gain_module and 'sens' in args.gain_ensemble: 
+            sensory_cued = nengo.Ensemble(Ns, D, neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
+                encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
+        else:
+            sensory_cued = nengo.Ensemble(Ns, D,
+                encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
+        # sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
         # How does the encoder function work here? Does it use the e_cued matrix to convert the images into 
         # SVD reduced versions? But how do the gabor filters work
 
@@ -343,7 +349,13 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         # Not sure what the SVD outcomes actually mean TODO
 
         #memory ensemble
-        memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_cued') 
+        if '1' in args.gain_module and 'mem' in args.gain_ensemble: 
+            memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
+                intercepts=Uniform(0.01, .1),radius=1,label='memory_cued') 
+        else:
+            memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), 
+                intercepts=Uniform(0.01, .1),radius=1,label='memory_cued') 
+        # memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_cued') 
         nengo.Connection(reactivate,memory_cued.neurons) #potential reactivation --> This is the CUE
         nengo.Connection(sensory_cued, memory_cued, transform=.1) #.1)
         
@@ -351,32 +363,68 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         nengo.Connection(memory_cued, memory_cued,transform=1, learning_rule_type=STP(), solver=nengo.solvers.LstsqL2(weights=True))
 
         #comparison represents sin, cosine of theta of both sensory and memory ensemble
-        comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
+        if '1' in args.gain_module and 'comp' in args.gain_ensemble: 
+            comparison_cued = nengo.Ensemble(Nc,neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
+                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
+        else:
+            comparison_cued = nengo.Ensemble(Nc,
+                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
+        # comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
         nengo.Connection(sensory_cued, comparison_cued[:2],eval_points=compressed_im_cued[0:-1],function=sincos.T)
         nengo.Connection(memory_cued, comparison_cued[2:],eval_points=compressed_im_cued[0:-1],function=sincos.T)
        
         #decision represents the difference in theta decoded from the sensory and memory ensembles
-        decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_cued') 
+        if '1' in args.gain_module and 'dec' in args.gain_ensemble: 
+            decision_cued = nengo.Ensemble(neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
+                n_neurons=Nd,  dimensions=1, radius=45,label='decision_cued') 
+        else:
+            decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1, radius=45,label='decision_cued') 
+        # decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_cued') 
         nengo.Connection(comparison_cued, decision_cued, eval_points=ep, scale_eval_points=False, function=arctan_func)
 
         #same for uncued
         if uncued:
             inputNode_uncued=nengo.Node(uncued_input_partial,label='input_uncued')
 
-            sensory_uncued = nengo.Ensemble(Ns, D, encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
+            if '2' in args.gain_module and 'sens' in args.gain_ensemble: 
+                sensory_uncued = nengo.Ensemble(Ns, D, neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
+                    encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
+            else:
+                sensory_uncued = nengo.Ensemble(Ns, D,
+                    encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
+        
+            # sensory_uncued = nengo.Ensemble(Ns, D, encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
             nengo.Connection(inputNode_uncued,sensory_uncued,transform=U_uncued[:,:D].T)
             
-            memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued')
+            if '2' in args.gain_module and 'mem' in args.gain_ensemble: 
+                memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
+                    intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued') 
+            else:
+                memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued')
+        
+            # memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued')
             nengo.Connection(sensory_uncued, memory_uncued, transform=.1)
    
             nengo.Connection(memory_uncued, memory_uncued,transform=1,learning_rule_type=STP(),solver=nengo.solvers.LstsqL2(weights=True))
-    
-            comparison_uncued = nengo.Ensemble(Nd, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued')
+
+            if '2' in args.gain_module and 'comp' in args.gain_ensemble: 
+                comparison_uncued = nengo.Ensemble(Nc,neuron_type=gainLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
+                    dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued') 
+            else:
+                comparison_uncued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued')
+
+            # comparison_uncued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued')
     
             nengo.Connection(memory_uncued, comparison_uncued[2:],eval_points=compressed_im_uncued[0:-1],function=sincos.T)
             nengo.Connection(sensory_uncued, comparison_uncued[:2],eval_points=compressed_im_uncued[0:-1],function=sincos.T)
             
-            decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
+            if '2' in args.gain_module and 'dec' in args.gain_ensemble: 
+                decision_uncued = nengo.Ensemble(neuron_type=gainLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
+                    n_neurons=Nd,  dimensions=1, radius=45,label='decision_uncued') 
+            else:
+                decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
+        
+            # decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
             nengo.Connection(comparison_uncued, decision_uncued, eval_points=ep, scale_eval_points=False, function=arctan_func)
      
         #decode for gui

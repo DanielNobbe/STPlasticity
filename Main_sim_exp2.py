@@ -72,9 +72,9 @@ def main(args):
     sim_no = str(sim_to_run)      #simulation number (used in the names of the outputfiles)
 
     #set this if you are using nengo OCL
-    platform = cl.get_platforms()[0]   #select platform, should be 0
-    device=platform.get_devices()[0]   #select GPU, use 0 (Nvidia 1) or 1 (Nvidia 3)
-    context=cl.Context([device])
+    # platform = cl.get_platforms()[0]   #select platform, should be 0
+    # device=platform.get_devices()[0]   #select GPU, use 0 (Nvidia 1) or 1 (Nvidia 3)
+    # context=cl.Context([device])
 
 
     #MODEL PARAMETERS
@@ -112,7 +112,7 @@ def main(args):
         print('Running simulation 1')
         print('')
         
-        load_gabors_svd = False #no need to randomize this D: originally False
+        load_gabors_svd = True #no need to randomize this D: originally False
         
         ntrials = 3
         store_representations = True
@@ -153,8 +153,8 @@ def main(args):
                         probe_second=probe_second, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, e_first=e_first, U_first=U_first, compressed_im_first=compressed_im_first,
                         e_second=e_second, U_second=U_second, compressed_im_second=compressed_im_second,
                         store_representations=store_representations, store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources)
-            sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
-
+            # sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
+            sim = nengo.simulator.Simulator(network=model, seed=run, progress_bar=False)
             #run simulation
             sim.run(4.6)
 
@@ -173,20 +173,22 @@ def main(args):
             sim.data = nengo.simulator.ProbeDict(sim._probe_outputs) 
             
         
-        #average
+        # average
         mem_1 /= ntrials
         mem_2 /= ntrials
 
         #second, run 1 trial to get calcium and spikes
         store_spikes_and_resources = True
         store_representations = False
+
+
         model = create_model(seed=0, memory_item_first=memory_item_first, probe_first=probe_first, memory_item_second=memory_item_second,
                         probe_second=probe_second, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, e_first=e_first, U_first=U_first, compressed_im_first=compressed_im_first,
                         e_second=e_second, U_second=U_second, compressed_im_second=compressed_im_second,
-                        store_representations=store_representations, store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources)
+                        store_representations=store_representations, store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources, args=args)
         #recreate model to change probes
-        sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
-
+        # sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
+        sim = nengo.simulator.Simulator(network=model, seed=0, progress_bar=False)
         print('Run ' + str(ntrials+1))
         sim.run(4.6)
 
@@ -244,11 +246,13 @@ def main(args):
             model = create_model(seed=subj, memory_item_first=memory_item_first, probe_first=probe_first, memory_item_second=memory_item_second,
                         probe_second=probe_second, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, e_first=e_first, U_first=U_first, compressed_im_first=compressed_im_first,
                         e_second=e_second, U_second=U_second, compressed_im_second=compressed_im_second,
-                        store_representations=store_representations, store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources)
+                        store_representations=store_representations, store_decisions=store_decisions, 
+                        store_spikes_and_resources=store_spikes_and_resources, args=args)
             
 
             #use StpOCLsimulator to make use of the Nengo OCL implementation of STSP
-            sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
+            # sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
+            sim = nengo.simulator.Simulator(network=model, seed=subj, progress_bar=False)
 
             #trials come in sets of 12, which we call a run (all possible orientation differences between memory and probe),
             runs = int(trials_per_subj / 12)   
@@ -312,5 +316,12 @@ if __name__=='__main__':
     parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
 
+    parser.add_argument('--gain_module', '-gm', nargs='+', default=[], help='List of modules to apply gain to (1 or 2 or both)')
+    parser.add_argument('--gain_ensemble', '-ge', nargs='+', default=[], help='List of ensembles to apply gain to. (sens, mem, comp and/or dec)')
+    parser.add_argument('--on_time1', '-on1', type=float, default=0., help='Timestep to start gain modulation in module 1.')
+    parser.add_argument('--on_time2', '-on2', type=float, default=0., help='Timestep to start gain modulation in module 2.')
+    parser.add_argument('--off_time1', '-off1', type=float, default=0., help='Timestep to end gain modulation in module 1.')
+    parser.add_argument('--off_time2', '-off2', type=float, default=0., help='Timestep to end gain modulation in module 2.')
+    parser.add_argument('--gain_level', '-gl', type=float, default=1.0, help='Gain level to apply wherever gain modulation is applied.')
     args = parser.parse_args()
     main(args)

@@ -132,15 +132,17 @@ def main(args):
                 if not uncued:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
-                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            memory_item_cued=memory_item_cued, probe_cued=probe_cued, Ns=Ns, D=D, Nm=Nm, 
+                            Nc=Nc, Nd=Nd, args=args)
                 else:
                     model = create_model(seed=run, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
                             memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
-                sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, args=args)
+                # sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
+                sim = nengo.simulator.Simulator(network=model, seed=run, progress_bar=False)
 
                 #run simulation
                 sim.run(3)
@@ -188,17 +190,18 @@ def main(args):
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
                             memory_item_cued=memory_item_cued, probe_cued=probe_cued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, args=args)
             else:
                 model = create_model(seed=0, nengo_gui_on=False, store_representations=store_representations, store_spikes_and_resources=store_spikes_and_resources,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, 
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
                             memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, args=args)
             # create_model(seed=0, nengo_gui_on=nengo_gui_on, store_representations=store_representations,
             #     store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources) #recreate model to change probes
-            sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
+            # sim = StpOCLsimulator(network=model, seed=0, context=context,progress_bar=False)
+            sim = nengo.simulator.Simulator(network=model, seed=0, progress_bar=False)
 
             print('Run ' + str(ntrials+1))
             sim.run(3)
@@ -265,7 +268,7 @@ def main(args):
                     model = create_model(seed=subj, nengo_gui_on=False, store_representations=store_representations,
                             store_decisions=store_decisions, uncued=uncued, e_cued=e_cued, U_cued=U_cued, compressed_im_cued=compressed_im_cued, 
                             memory_item_cued=memory_item_cued, probe_cued=probe_cued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, args=args)
                     # set_trace()
                       
                 else:
@@ -274,10 +277,12 @@ def main(args):
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
                             memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, args=args)
 
                 #use StpOCLsimulator to make use of the Nengo OCL implementation of STSP
-                sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
+                # sim = StpOCLsimulator(network=model, seed=subj, context=context,progress_bar=False)
+                sim = nengo.simulator.Simulator(network=model, seed=subj, progress_bar=False)
+
                 sim.run(3)
                 # set_trace()
                 #trials come in sets of 14, which we call a run (all possible orientation differences between memory and probe),
@@ -334,6 +339,14 @@ if __name__ == '__main__':
     parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
+
+    parser.add_argument('--gain_module', '-gm', nargs='+', default=[], help='List of modules to apply gain to (1 or 2 or both)')
+    parser.add_argument('--gain_ensemble', '-ge', nargs='+', default=[], help='List of ensembles to apply gain to. (sens, mem, comp and/or dec)')
+    parser.add_argument('--on_time1', '-on1', type=float, default=0., help='Timestep to start gain modulation in module 1.')
+    parser.add_argument('--on_time2', '-on2', type=float, default=0., help='Timestep to start gain modulation in module 2.')
+    parser.add_argument('--off_time1', '-off1', type=float, default=0., help='Timestep to end gain modulation in module 1.')
+    parser.add_argument('--off_time2', '-off2', type=float, default=0., help='Timestep to end gain modulation in module 2.')
+    parser.add_argument('--gain_level', '-gl', type=float, default=1.0, help='Gain level to apply wherever gain modulation is applied.')
 
     args = parser.parse_args()
     main(args)

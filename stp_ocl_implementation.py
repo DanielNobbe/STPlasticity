@@ -22,8 +22,21 @@ from nengo_ocl.raggedarray import RaggedArray
 from nengo_ocl.clraggedarray import CLRaggedArray, to_device
 from nengo.dists import Uniform
 
-
 #create new neuron type stpLIF with resources (x) and calcium (u)
+
+class gainLIF(LIF):
+    def __init__(self, on_time, off_time, gain, **lif_args):
+        super(gainLIF, self).__init__(**lif_args)
+        self.on_time = on_time # first timepoint with increased gain
+        self.off_time = off_time # first timepoint with normal gain, after on_time
+        self.gain = gain
+    
+    def step_math(self, dt, J, output, voltage, ref, timestamp):
+        LIF.step_math(self, dt, J, output, voltage, ref) # output = spiked
+        if (timestamp > self.on_time).any() and (timestamp < self.off_time).any():
+            output *= self.gain
+        timestamp += dt
+
 
 class stpLIF(LIF):
     probeable = ('spikes', 'resources', 'voltage', 'refractory_time', 'calcium')
@@ -31,12 +44,18 @@ class stpLIF(LIF):
     tau_x = NumberParam('tau_x', low=0, low_open=True)
     tau_u = NumberParam('tau_u', low=0, low_open=True)
     U = NumberParam('U', low=0, low_open=True)
+    on_time = NumberParam('on_time', low=-1, low_open=True)
+    off_time = NumberParam('off_time', low=-1, low_open=True)
 
-    def __init__(self, tau_x=0.2, tau_u=1.5, U=0.2, **lif_args):
+
+    def __init__(self, tau_x=0.2, tau_u=1.5, U=0.2, on_time=0, off_time=0, gain=1, **lif_args):
         super(stpLIF, self).__init__(**lif_args)
         self.tau_x = tau_x
         self.tau_u = tau_u
         self.U = U
+        self.on_time = on_time # first timepoint with increased gain
+        self.off_time = off_time # first timepoint with normal gain, after on_time
+        self.gain = gain
 
     @property
     def _argreprs(self):
@@ -49,22 +68,46 @@ class stpLIF(LIF):
             args.append("U=%s" % self.U)
         return args
 
-    def step_math(self, dt, J, output, voltage, ref, resources, calcium):
+    def step_math(self, dt, J, output, voltage, ref, resources, calcium, timestamp):
         """Implement the u and x parameters """
         x = resources
         u = calcium
-        LIF.step_math(self, dt, J, output, voltage, ref)
+        LIF.step_math(self, dt, J, output, voltage, ref) # output = spiked
         
         #calculate u and x
+        if (timestamp>self.on_time).any() and (timestamp<self.off_time).any(): # For now, apply output multiplication before resource computation
+            output *= self.gain # double the output values for testing (hope nengo accepts this)
+
         dx=dt * ( (1-x)/self.tau_x - u*x*output )
         du=dt * ( (self.U-u)/self.tau_u + self.U*(1-u)*output )
         
         x += dx
         u += du
+        # print("Hello ", dt, timestamp)
+        timestamp += dt
+        # u = 0.8
+        
         
 
 
 #add builder for stpLIF
+@Builder.register(gainLIF)
+def build_gainLIF(model, gainlif, neurons):
+    
+    model.sig[neurons]['voltage'] = Signal(
+        np.zeros(neurons.size_in), name="%s.voltage" % neurons)
+    model.sig[neurons]['refractory_time'] = Signal(
+        np.zeros(neurons.size_in), name="%s.refractory_time" % neurons)
+    model.sig[neurons]['timestamp'] = Signal(
+        np.zeros((1)), name="%s.timestamp" % neurons
+    )
+    model.add_op(SimNeurons(neurons=gainlif,
+                            J=model.sig[neurons]['in'],
+                            output=model.sig[neurons]['out'],
+                            states=[model.sig[neurons]['voltage'],
+                                    model.sig[neurons]['refractory_time'],
+                                    model.sig[neurons]['timestamp']]))
+
 
 @Builder.register(stpLIF)
 def build_stpLIF(model, stplif, neurons):
@@ -77,13 +120,17 @@ def build_stpLIF(model, stplif, neurons):
         np.ones(neurons.size_in), name="%s.resources" % neurons)
     model.sig[neurons]['calcium'] = Signal(
         np.full(neurons.size_in, stplif.U), name="%s.calcium" % neurons)
+    model.sig[neurons]['timestamp'] = Signal(
+        np.zeros((1)), name="%s.timestamp" % neurons
+    )
     model.add_op(SimNeurons(neurons=stplif,
                             J=model.sig[neurons]['in'],
                             output=model.sig[neurons]['out'],
                             states=[model.sig[neurons]['voltage'],
                                     model.sig[neurons]['refractory_time'],
                                     model.sig[neurons]['resources'],
-                                    model.sig[neurons]['calcium']]))
+                                    model.sig[neurons]['calcium'],
+                                    model.sig[neurons]['timestamp']]))
 
 
 
@@ -152,6 +199,7 @@ class SimSTP(Operator):
         self.incs = []
         self.reads = [weights, calcium, resources]
         self.updates = [delta]
+        self.time_passed = 0
 
     @property
     def delta(self):
