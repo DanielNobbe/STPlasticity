@@ -10,7 +10,6 @@ from nengo_extras.vision import Gabor, Mask
 from random import randint
 import nengo.spa as spa
 import os.path
-from diskcache import Cache
 from pdb import set_trace
 from copy import deepcopy
 # For tracemalloc:
