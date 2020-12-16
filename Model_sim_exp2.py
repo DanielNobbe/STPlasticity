@@ -514,7 +514,7 @@ def plot_sim_1(sp_1,sp_2,res_1,res_2,cal_1,cal_2, mem_1, mem_2, sim=None, Nm=Non
         plot_mc.set_xticklabels(np.arange(0,250,50).tolist())
         plot_mc.set_xlabel('time after onset impulse (ms)')
         plot_mc.set_xlim(3.8,3.95)
-        plot_mc.set_ylim(0,0.9)
+        plot_mc.set_ylim(0,1.0)
         colors=["#00c094","#00bfc4","#00b6eb","#06a4ff","#a58aff","#df70f8","#fb61d7", "#c49a00"]
         for i,j in enumerate(plot_mc.lines):
             j.set_color(colors[i])
@@ -528,7 +528,7 @@ def plot_sim_1(sp_1,sp_2,res_1,res_2,cal_1,cal_2, mem_1, mem_2, sim=None, Nm=Non
         plot_mu.set_yticks([])
         plot_mu.set_yticklabels([])
         plot_mu.set_xlim(3.8,3.95)
-        plot_mu.set_ylim(0,0.9)
+        plot_mu.set_ylim(0,1.0)
         for i,j in enumerate(plot_mu.lines):
             j.set_color(colors[i])
         plot_mu.legend(["0°","5°","10°","16°","24°","32°","40°", "Impulse"], title="Stimulus", bbox_to_anchor=(0.85, 0.25, .55, 0.8), loc=3,

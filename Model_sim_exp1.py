@@ -521,6 +521,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         plot_mc.set_xticklabels(np.arange(0,3500,500).tolist())
         plot_mc.set_xlabel('time (ms)')
         plot_mc.set_xlim(0,3)
+        plot_mc.set_ylim(0,1.0)
         colors=["#00c094","#00bfc4","#00b6eb","#06a4ff","#a58aff","#df70f8","#fb61d7","#ff66a8", "#c49a00"]
         for i,j in enumerate(plot_mc.lines):
             j.set_color(colors[i])
