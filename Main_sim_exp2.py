@@ -288,7 +288,7 @@ def main(args):
                     assert model.nodes[0].label == 'input_first', "First node not input_first, please fix"
                     model.nodes[0] = nengo.Node(input_partial_first,label='input_first', add_to_container=False) 
                     assert model.nodes[1].label == 'input_second', "Second node not input_second, please fix"
-                    model.nodes[0] = nengo.Node(input_partial_second,label='input_second', add_to_container=False) 
+                    model.nodes[1] = nengo.Node(input_partial_second,label='input_second', add_to_container=False) 
                     #run simulation
                     sim.run(4.6)
                 
