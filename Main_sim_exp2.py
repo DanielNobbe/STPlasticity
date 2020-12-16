@@ -151,7 +151,8 @@ def main(args):
             model = create_model(seed=run, memory_item_first=memory_item_first, probe_first=probe_first, memory_item_second=memory_item_second,
                         probe_second=probe_second, Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, e_first=e_first, U_first=U_first, compressed_im_first=compressed_im_first,
                         e_second=e_second, U_second=U_second, compressed_im_second=compressed_im_second,
-                        store_representations=store_representations, store_decisions=store_decisions, store_spikes_and_resources=store_spikes_and_resources)
+                        store_representations=store_representations, store_decisions=store_decisions, 
+                        store_spikes_and_resources=store_spikes_and_resources, args=args)
             # sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
             sim = nengo.simulator.Simulator(network=model, seed=run, progress_bar=False)
             #run simulation
