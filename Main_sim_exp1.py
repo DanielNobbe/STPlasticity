@@ -80,7 +80,7 @@ def main(args):
             
             load_gabors_svd = True #no need to randomize this
             
-            ntrials = 1 # Used to be 100
+            # ntrials = 1 # Used to be 100
             store_representations = True
             store_decisions = False
             uncued = True # Set to True for full experiment, and plotting of figure 3,4
@@ -227,8 +227,8 @@ def main(args):
         
             load_gabors_svd = True #set to false for real simulation D: should be true
 
-            n_subj = 3 # Was 30
-            trials_per_subj = 14 # was 1344
+            # n_subj = 3 # Was 30
+            # trials_per_subj = 14 # was 1344
             store_representations = False 
             store_decisions = True # Should be true for this exp 
             uncued = False # Only do this for cued module. TODO: Do we want to change this?
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     parser.add_argument('--ntrials', '-nt', type=int, default=100, help='Number of trials to run in sim1')
     parser.add_argument('--nsubj', '-ns', type=int, default=30, help='Number of subjects to run in sim2')
     parser.add_argument('--trials_per_subj', '-nps', type=int, default=2*864, help='Number of trials per subject in sim2')
-    
+
     parser.add_argument('--gain_module', '-gm', nargs='+', default=[], help='List of modules to apply gain to (1 or 2 or both)')
     parser.add_argument('--gain_ensemble', '-ge', nargs='+', default=[], help='List of ensembles to apply gain to. (sens, mem, comp and/or dec)')
     parser.add_argument('--on_time1', '-on1', type=float, default=0., help='Timestep to start gain modulation in module 1.')

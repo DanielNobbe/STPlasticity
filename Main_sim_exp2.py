@@ -116,7 +116,6 @@ def main(args):
         
         load_gabors_svd = True #no need to randomize this D: originally False
         
-        ntrials = 3
         store_representations = True
         store_decisions = False
 
@@ -214,8 +213,8 @@ def main(args):
     
         load_gabors_svd = False #set to false for real simulation
 
-        n_subj = 1
-        trials_per_subj = 12
+        # n_subj = 1
+        # trials_per_subj = 12
         # trials_per_subj = 2*864
         store_representations = False 
         store_decisions = True 
@@ -323,7 +322,7 @@ if __name__=='__main__':
     parser.add_argument('--ntrials', '-nt', type=int, default=100, help='Number of trials to run in sim1')
     parser.add_argument('--nsubj', '-ns', type=int, default=30, help='Number of subjects to run in sim2')
     parser.add_argument('--trials_per_subj', '-nps', type=int, default=2*864, help='Number of trials per subject in sim2')
-    
+
     parser.add_argument('--gain_module', '-gm', nargs='+', default=[], help='List of modules to apply gain to (1 or 2 or both)')
     parser.add_argument('--gain_ensemble', '-ge', nargs='+', default=[], help='List of ensembles to apply gain to. (sens, mem, comp and/or dec)')
     parser.add_argument('--on_time1', '-on1', type=float, default=0., help='Timestep to start gain modulation in module 1.')
