@@ -95,7 +95,7 @@ def input_func_first(t, memory_item_first=None, probe_first=None):
 
 def input_func_second(t, memory_item_second=None, probe_second=None):
     if t > 0 and t < 0.25:
-        return (imagearr[memory_item_second,:]/100) * .9 #slightly lower input for secondary item
+        return (imagearr[memory_item_second,:]/100) * 1.0 #slightly lower input for secondary item
     elif t > 1.2 and t < 1.3:
         return imagearr[-1,:]/50 #impulse, twice the contrast of other items
         # return imagearr[-1,:]/100 #impulse, without increasing contrast
