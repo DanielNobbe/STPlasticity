@@ -254,8 +254,8 @@ def create_model(seed=None, memory_item_first=None, probe_first=None, memory_ite
         #input nodes
         inputNode_first=nengo.Node(input_partial_first,label='input_first')     
         
-        start_intercept = 0.01
-        end_intercept = 0.1
+        start_intercept = 0.05
+        end_intercept = 0.15
 
         #sensory ensemble
         if '1' in args.gain_module and 'sens' in args.gain_ensemble: 
