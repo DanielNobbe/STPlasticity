@@ -233,7 +233,6 @@ def main(args):
                 np.savetxt(cur_path+sim_no+"attention%i_spikes_uncued.csv" % (attention), sim.data[model.p_spikes_mem_uncued], delimiter=",")
                 np.savetxt(cur_path+sim_no+"attention%i_calcium_uncued.csv" % (attention), sim.data[model.p_cal_uncued], delimiter=",")
                 np.savetxt(cur_path+sim_no+"attention%i_resources_uncued.csv" % (attention), sim.data[model.p_res_uncued], delimiter=",")
-                np.savetxt(cur_path+sim_no+"attention%i_decision_uncued" % (attention), sim.data[model.p_dec_uncued],delimiter=",")  
                 
         #simulation 2: collect data for fig 5 & 6. 1344 trials for 30 subjects
         if sim_to_run == 2:
