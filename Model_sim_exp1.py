@@ -551,7 +551,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         plot_mc.set_title("Cued Module")
         plot_mc.plot(sim.trange(),(mem_cued));
         plot_mc.set_ylabel("Cosine similarity")
-        plot_mc.setylim(0,1)
+        plot_mc.set_ylim(0,1)
         plot_mc.set_xticks(np.arange(2.15,2.35,0.05))
         plot_mc.set_xticklabels(np.arange(0,250,50).tolist())
         plot_mc.set_xlabel('time after onset impulse (ms)')
