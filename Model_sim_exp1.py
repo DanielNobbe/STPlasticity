@@ -336,12 +336,12 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         att_fact = 1.25 # the amount with which the max firing rates are increased due to attentional gain
         min_max_rate = int(att_fact*200)
         max_max_rate = int(att_fact*400)
-        if attention==0:
-            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
-            memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_cued')
-            comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
-            decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_cued') 
-        elif attention==1:
+        
+        sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_cued')
+        memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_cued')
+        comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_cued') 
+        decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_cued') 
+        if attention==1:
             # apply attentional gain to the sensory ensemble in the cued module
             sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1), max_rates=Uniform(min_max_rate,max_max_rate),radius=1,label='sensory_cued')
         elif attention==2:
@@ -389,11 +389,10 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         if uncued:
             inputNode_uncued=nengo.Node(uncued_input_partial,label='input_uncued')
 
-            if attention==0:
-                sensory_uncued = nengo.Ensemble(Ns, D, encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
-                memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued')
-                comparison_uncued = nengo.Ensemble(Nd, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued')
-                decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
+            sensory_uncued = nengo.Ensemble(Ns, D, encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,label='sensory_uncued')
+            memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_uncued')
+            comparison_uncued = nengo.Ensemble(Nd, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_uncued')
+            decision_uncued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,label='decision_uncued') 
             if attention==5:
                 sensory_uncued = nengo.Ensemble(Ns, D, encoders=e_uncued, intercepts=Uniform(0.01, .1),radius=1,max_rates=Uniform(min_max_rate,max_max_rate),label='sensory_uncued')
                 memory_uncued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,max_rates=Uniform(min_max_rate,max_max_rate),label='memory_uncued')
