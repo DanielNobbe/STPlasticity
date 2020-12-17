@@ -527,7 +527,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         # theme.apply(fig.axes[2]) # Gives error
         theme.apply(fig.axes[3])
 
-        plt.savefig('Figure_3.eps', format='eps', dpi=1000)
+        plt.savefig('Figure_3_attention%i.eps' % (attention), format='eps', dpi=1000)
         plt.show()
     
     
@@ -574,7 +574,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         theme.apply(fig.axes[1])
         # theme.apply(plt.gcf().axes[0])
         # theme.apply(plt.gcf().axes[1])
-        plt.savefig('Figure_4.eps', format='eps', dpi=1000)
+        plt.savefig('Figure_4_attention%i.eps' % (attention), format='eps', dpi=1000)
         plt.show()    
     
     
