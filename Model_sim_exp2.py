@@ -254,22 +254,25 @@ def create_model(seed=None, memory_item_first=None, probe_first=None, memory_ite
         #input nodes
         inputNode_first=nengo.Node(input_partial_first,label='input_first')     
         
+        start_intercept = 0.1
+        end_intercept = 0.2
+
         #sensory ensemble
         if '1' in args.gain_module and 'sens' in args.gain_ensemble: 
             sensory_first = nengo.Ensemble(Ns, D, neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
-                encoders=e_first, intercepts=Uniform(0.01, .1),radius=1,label='sensory_first')
+                encoders=e_first, intercepts=Uniform(start_intercept, end_intercept),radius=1,label='sensory_first')
         else:
             sensory_first = nengo.Ensemble(Ns, D,
-                encoders=e_first, intercepts=Uniform(0.01, .1),radius=1,label='sensory_first')
+                encoders=e_first, intercepts=Uniform(start_intercept, end_intercept),radius=1,label='sensory_first')
         nengo.Connection(inputNode_first,sensory_first,transform=U_first[:,:D].T)
         
         #memory ensemble
         if '1' in args.gain_module and 'mem' in args.gain_ensemble: 
             memory_first = nengo.Ensemble(Nm, D,neuron_type=stpLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
-                intercepts=Uniform(0.01, .1),radius=1,label='memory_first') 
+                intercepts=Uniform(start_intercept, end_intercept),radius=1,label='memory_first') 
         else:
             memory_first = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), 
-                intercepts=Uniform(0.01, .1),radius=1,label='memory_first') 
+                intercepts=Uniform(start_intercept, end_intercept),radius=1,label='memory_first') 
         nengo.Connection(sensory_first, memory_first, transform=.1) #.1)
         
         #recurrent STSP connection
@@ -278,10 +281,10 @@ def create_model(seed=None, memory_item_first=None, probe_first=None, memory_ite
         #comparison represents sin, cosine of theta of both sensory and memory ensemble
         if '1' in args.gain_module and 'comp' in args.gain_ensemble: 
             comparison_first = nengo.Ensemble(Nc,neuron_type=gainLIF(on_time=args.on_time1, off_time=args.off_time1, gain=args.gain_level), 
-                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_first') 
+                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(start_intercept, end_intercept),label='comparison_first') 
         else:
             comparison_first = nengo.Ensemble(Nc,
-                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_first') 
+                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(start_intercept, end_intercept),label='comparison_first') 
         nengo.Connection(sensory_first, comparison_first[:2],eval_points=compressed_im_first[0:-1],function=sincos.T)
         nengo.Connection(memory_first, comparison_first[2:],eval_points=compressed_im_first[0:-1],function=sincos.T)
        
@@ -299,16 +302,16 @@ def create_model(seed=None, memory_item_first=None, probe_first=None, memory_ite
     
         if '2' in args.gain_module and 'sens' in args.gain_ensemble: 
             sensory_second = nengo.Ensemble(Ns, D, neuron_type=gainLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
-                encoders=e_second, intercepts=Uniform(0.01, .1),radius=1,label='sensory_second')
+                encoders=e_second, intercepts=Uniform(start_intercept, end_intercept),radius=1,label='sensory_second')
         else:
-            sensory_second = nengo.Ensemble(Ns, D, encoders=e_second, intercepts=Uniform(0.01, .1),radius=1,label='sensory_second')
+            sensory_second = nengo.Ensemble(Ns, D, encoders=e_second, intercepts=Uniform(start_intercept, end_intercept),radius=1,label='sensory_second')
         nengo.Connection(inputNode_second,sensory_second,transform=U_second[:,:D].T)
         
         if '2' in args.gain_module and 'mem' in args.gain_ensemble: 
             memory_second = nengo.Ensemble(Nm, D,neuron_type=stpLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
-                intercepts=Uniform(0.01, .1),radius=1,label='memory_second') 
+                intercepts=Uniform(start_intercept, end_intercept),radius=1,label='memory_second') 
         else:
-            memory_second = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1),radius=1,label='memory_second')
+            memory_second = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(start_intercept, end_intercept),radius=1,label='memory_second')
         nengo.Connection(sensory_second, memory_second, transform=.1)
         nengo.Connection(reactivate,memory_second.neurons) #potential reactivation
 
@@ -316,9 +319,9 @@ def create_model(seed=None, memory_item_first=None, probe_first=None, memory_ite
 
         if '2' in args.gain_module and 'comp' in args.gain_ensemble: 
             comparison_second = nengo.Ensemble(Nc,neuron_type=gainLIF(on_time=args.on_time2, off_time=args.off_time2, gain=args.gain_level), 
-                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_second') 
+                dimensions=4,radius=math.sqrt(2),intercepts=Uniform(start_intercept, end_intercept),label='comparison_second') 
         else:
-            comparison_second = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),label='comparison_second')
+            comparison_second = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(start_intercept, end_intercept),label='comparison_second')
 
         nengo.Connection(memory_second, comparison_second[2:],eval_points=compressed_im_second[0:-1],function=sincos.T)
         nengo.Connection(sensory_second, comparison_second[:2],eval_points=compressed_im_second[0:-1],function=sincos.T)
