@@ -85,7 +85,7 @@ def main(args):
             load_gabors_svd = True #no need to randomize this
             
             store_representations = True
-            store_decisions = False
+            store_decisions = True # Ildefonso: we might as well store the decisions so we can make smth that looks like figs 5,6
             uncued = True # Set to True for full experiment, and plotting of figure 3,4
 
 
@@ -143,7 +143,7 @@ def main(args):
                             compressed_im_cued=compressed_im_cued, e_uncued=e_uncued, U_uncued=U_uncued, 
                             compressed_im_uncued=compressed_im_cued, memory_item_cued=memory_item_cued, 
                             memory_item_uncued=memory_item_uncued, probe_cued=probe_cued, probe_uncued=probe_uncued, 
-                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd)
+                            Ns=Ns, D=D, Nm=Nm, Nc=Nc, Nd=Nd, attention=attention)
                 sim = StpOCLsimulator(network=model, seed=run, context=context,progress_bar=False)
 
                 #run simulation
@@ -220,14 +220,25 @@ def main(args):
             #plot
             if uncued:
                 plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim, Nm=Nm)
+                
+            #store output
+            np.savetxt(cur_path+sim_no+"attention%i_spikes_cued.csv" % (attention), sim.data[model.p_spikes_mem_cued], delimiter=",")
+            np.savetxt(cur_path+sim_no+"attention%i_calcium_cued.csv" % (attention), sim.data[model.p_cal_cued], delimiter=",")            
+            np.savetxt(cur_path+sim_no+"attention%i_resources_cued.csv" % (attention), sim.data[model.p_res_cued], delimiter=",")
+            np.savetxt(cur_path+sim_no+"attention$i_decision_cued.csv" % (attention), sim.data[model.p_dec_cued],delimiter=",")
             
-
+            if uncued:
+                np.savetxt(cur_path+sim_no+"attention%i_spikes_uncued.csv" % (attention), sim.data[model.p_spikes_mem_uncued], delimiter=",")
+                np.savetxt(cur_path+sim_no+"attention%i_calcium_uncued.csv" % (attention), sim.data[model.p_cal_uncued], delimiter=",")
+                np.savetxt(cur_path+sim_no+"attention%i_resources_uncued.csv" % (attention), sim.data[model.p_res_uncued], delimiter=",")
+                np.savetxt(cur_path+sim_no+"attention$i_decision_uncued.csv" % (attention), sim.data[model.p_dec_uncued],delimiter=",")  
+                
         #simulation 2: collect data for fig 5 & 6. 1344 trials for 30 subjects
         if sim_to_run == 2:
         
             load_gabors_svd = True #set to false for real simulation D: should be true
 
-            n_subj = 3 # Was 30
+            n_subj = 1 # Was 30
             trials_per_subj = 14 # was 1344
             store_representations = False 
             store_decisions = True # Should be true for this exp 
@@ -338,7 +349,7 @@ if __name__ == '__main__':
     parser.add_argument('--Nm', '-Nm', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nc', '-Nc', type=int, default=1500, help='Dimensionality of representations')
     parser.add_argument('--Nd', '-Nd', type=int, default=1000, help='Dimensionality of representations')
-    parser.add_argument('--att', type=bool, help='Apply attentional gain to sensory ensemble')
+    parser.add_argument('--att', type=int, help='Apply attentional gain to the different ensembles')
     parser.add_argument('--ntrials', '-nt', type=int, default=100, help='Number of trials to run in sim1')
     parser.add_argument('--nsubj', '-ns', type=int, default=30, help='Number of subjects to run in sim2')
     parser.add_argument('--trials_per_subj', '-nps', type=int, default=2*864, help='Number of trials per subject in sim2')
