@@ -333,7 +333,7 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
         # Each neuron is a single vector (inner) product, similar to ANNs. 
         # e_cued here is the 'encoder' for the neurons (if seen as matrix, otherwise it's the collection of encoding vectors)
         # which follows from the trained? gabor filters.
-        att_fact = 1.3 # the amount with which the max firing rates are increased due to attentional gain
+        att_fact = 1.25 # the amount with which the max firing rates are increased due to attentional gain
         min_max_rate = int(att_fact*200)
         max_max_rate = int(att_fact*400)
         if attention==0:
