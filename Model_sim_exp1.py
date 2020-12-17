@@ -445,7 +445,7 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
 
 
 
-def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued=None, sim=None, Nm=None):
+def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued=None, sim=None, Nm=None, fig3_name='Figure_3.eps', fig4_name='Figure_4.eps'):
     theme = theme_classic()
     plt.style.use('default')
     #FIGURE 31
@@ -527,7 +527,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         # theme.apply(fig.axes[2]) # Gives error
         theme.apply(fig.axes[3])
 
-        plt.savefig('Figure_3_attention%i.eps' % (attention), format='eps', dpi=1000)
+        plt.savefig(fig3_name, format='eps', dpi=1000)
         plt.show()
     
     
@@ -574,7 +574,7 @@ def plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u=None, mem_cued=None, mem_uncued
         theme.apply(fig.axes[1])
         # theme.apply(plt.gcf().axes[0])
         # theme.apply(plt.gcf().axes[1])
-        plt.savefig('Figure_4_attention%i.eps' % (attention), format='eps', dpi=1000)
+        plt.savefig(fig4_name, format='eps', dpi=1000)
         plt.show()    
     
     

@@ -219,7 +219,9 @@ def main(args):
 
             #plot
             if uncued:
-                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim, Nm=Nm)
+                fig3_name = 'Figure_3_attention'+str(attention)+'.eps'
+                fig4_name = 'Figure_4_attention'+str(attention)+'.eps'
+                plot_sim_1(sp_c,sp_u,res_c,res_u,cal_c,cal_u, mem_cued, mem_uncued, sim=sim, Nm=Nm, fig3_name=fig3_name, fig4_name=fig4_name)
                 
             #store output
             np.savetxt(cur_path+sim_no+"attention%i_spikes_cued.csv" % (attention), sim.data[model.p_spikes_mem_cued], delimiter=",")
