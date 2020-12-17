@@ -356,6 +356,12 @@ store_decisions=False, uncued=False, e_cued=None, U_cued=None, compressed_im_cue
             memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1), max_rates=Uniform(min_max_rate,max_max_rate),radius=1,label='memory_cued')
             comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),max_rates=Uniform(min_max_rate,max_max_rate),label='comparison_cued')
             decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,max_rates=Uniform(min_max_rate,max_max_rate),label='decision_cued')
+        elif attention==6:
+            # apply attentional gain to all ensembles in the cued module
+            sensory_cued = nengo.Ensemble(Ns, D, encoders=e_cued, intercepts=Uniform(0.01, .1), max_rates=Uniform(min_max_rate,max_max_rate),radius=1,label='sensory_cued')
+            memory_cued = nengo.Ensemble(Nm, D,neuron_type=stpLIF(), intercepts=Uniform(0.01, .1), max_rates=Uniform(min_max_rate,max_max_rate),radius=1,label='memory_cued')
+            comparison_cued = nengo.Ensemble(Nc, dimensions=4,radius=math.sqrt(2),intercepts=Uniform(.01, 1),max_rates=Uniform(min_max_rate,max_max_rate),label='comparison_cued')
+            decision_cued = nengo.Ensemble(n_neurons=Nd,  dimensions=1,radius=45,max_rates=Uniform(min_max_rate,max_max_rate),label='decision_cued')
             
         # How does the encoder function work here? Does it use the e_cued matrix to convert the images into 
         # SVD reduced versions? But how do the gabor filters work
